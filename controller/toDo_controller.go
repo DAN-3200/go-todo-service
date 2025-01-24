@@ -2,13 +2,15 @@
 package controller
 
 import (
-	"app/model"
-	"app/usecase"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+
+	"app/model"
+	"app/pkg"
+	"app/usecase"
 )
 
 type _ToDo_Controller struct {
@@ -55,7 +57,7 @@ func (it *_ToDo_Controller) Read(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, "Id inválido")
 	}
-	
+
 	// Executando useCase
 	response, err := it.ToDoUseCase.Read_ToDo(idParam)
 	if err != nil {
@@ -68,7 +70,14 @@ func (it *_ToDo_Controller) Read(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-func (it *_ToDo_Controller) Read_All(ctx *gin.Context){
+func (it *_ToDo_Controller) Read_All(ctx *gin.Context) {
+	// Validação JWT
+	var _token = ctx.Request.Header.Get("Authorization")
+	if !pkg.ValidateJWT(_token) {
+		ctx.JSON(403, "Token não autorizado")
+		return
+	}
+
 	// Executando useCase
 	var response, err = it.ToDoUseCase.Read_ToDoAll()
 	if err != nil {
@@ -113,7 +122,7 @@ func (it *_ToDo_Controller) Delete(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, "Id inválido")
 	}
-	
+
 	// Executando useCase
 	erro := it.ToDoUseCase.Delete_ToDo(idParam)
 	if erro != nil {
