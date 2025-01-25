@@ -1,26 +1,16 @@
-package routers
+package infrastructure
 
 import (
-	"app/controller"
-
-	"app/pkg"
-	"app/repository"
-	"app/usecase"
+	"fmt"
 	"net/http"
 
-	"fmt"
-
 	"github.com/gin-gonic/gin"
-	"database/sql"
+
+	"app/controller"
+	"app/pkg"
 )
 
-func Init(server *gin.Engine, Conn *sql.DB) {
-	// `Arquitetura Limpa` em Camadas
-	var useControllers = controller.Init(
-		usecase.Init(
-			repository.Init(Conn),
-		),
-	)
+func Routers(server *gin.Engine, useControllers *controller.ToDo_Controller) {
 
 	// Envia o JWT ao cliente
 	server.GET("/key", func(ctx *gin.Context) {

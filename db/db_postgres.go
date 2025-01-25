@@ -1,9 +1,8 @@
 package db
 
 import (
-	"os"
-
 	"database/sql"
+	"os"
 
 	_ "github.com/lib/pq" // Importar drive
 )

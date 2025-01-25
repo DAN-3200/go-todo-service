@@ -1,16 +1,17 @@
 // Lógica de Negócio (dependem de Repositories e manipulam Models)
+// O que a aplicação faz e como as models são usados
 package usecase
 
 import (
-	"app/db"
-	"app/model"
-	"app/repository"
+	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
 
-	"context"
+	"app/db"
+	"app/model"
+	"app/repository"
 )
 
 type ToDo_UseCase struct {
@@ -39,7 +40,7 @@ var useRedis = db.Conn_Redis()
 
 func (it *ToDo_UseCase) Read_ToDo(nID int) (model.ToDo, error) {
 
-	// Consultar o Cache Redis 
+	// Consultar o Cache Redis
 	var ToDo_Redis model.ToDo
 	var value, err = useRedis.Get(ctx, strconv.Itoa(nID)).Result()
 	if err != nil {

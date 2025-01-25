@@ -2,12 +2,12 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
 
-	"app/model"
-	"database/sql"
-
 	_ "github.com/lib/pq" // Importar drive
+
+	"app/model"
 )
 
 type ToDo_Repository struct {

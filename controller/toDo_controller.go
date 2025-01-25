@@ -13,19 +13,19 @@ import (
 	"app/usecase"
 )
 
-type _ToDo_Controller struct {
+type ToDo_Controller struct {
 	ToDoUseCase usecase.ToDo_UseCase
 }
 
 // -- Constructor
-func Init(usecase usecase.ToDo_UseCase) *_ToDo_Controller {
-	return &_ToDo_Controller{
+func Init(usecase usecase.ToDo_UseCase) *ToDo_Controller {
+	return &ToDo_Controller{
 		ToDoUseCase: usecase,
 	}
 }
 
 // -- Methods
-func (it *_ToDo_Controller) Create(ctx *gin.Context) {
+func (it *ToDo_Controller) Create(ctx *gin.Context) {
 	// tratando `request`
 	var request model.ToDo
 	if err := ctx.BindJSON(&request); err != nil {
@@ -46,7 +46,7 @@ func (it *_ToDo_Controller) Create(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, "ToDo Criado")
 }
 
-func (it *_ToDo_Controller) Read(ctx *gin.Context) {
+func (it *ToDo_Controller) Read(ctx *gin.Context) {
 	// tratando `request`
 	request := ctx.Param("id")
 	if request == "" {
@@ -70,7 +70,7 @@ func (it *_ToDo_Controller) Read(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-func (it *_ToDo_Controller) Read_All(ctx *gin.Context) {
+func (it *ToDo_Controller) Read_All(ctx *gin.Context) {
 	// Validação JWT
 	var _token = ctx.Request.Header.Get("Authorization")
 	if !pkg.ValidateJWT(_token) {
@@ -90,7 +90,7 @@ func (it *_ToDo_Controller) Read_All(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-func (it *_ToDo_Controller) Update(ctx *gin.Context) {
+func (it *ToDo_Controller) Update(ctx *gin.Context) {
 	// tratando `request`
 	var request model.ToDo
 	if err := ctx.BindJSON(&request); err != nil {
@@ -111,7 +111,7 @@ func (it *_ToDo_Controller) Update(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, "ToDo atualizado")
 }
 
-func (it *_ToDo_Controller) Delete(ctx *gin.Context) {
+func (it *ToDo_Controller) Delete(ctx *gin.Context) {
 	// tratando `request`
 	request := ctx.Param("id")
 	if request == "" {
