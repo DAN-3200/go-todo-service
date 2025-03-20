@@ -1,8 +1,8 @@
 package infrastructure
 
 import (
+	"database/sql"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -23,12 +23,9 @@ func RunServerAPI() {
 	}
 
 	// Conexão com banco de dados
-	var Conn, err = db.Conn_Postgres()
+	var Conn = db.Conn_Sqlite()
 	defer Conn.Close()
-	if err != nil {
-		log.Fatal("Erro", err)
-		return
-	}
+	// CreateTable(Conn)
 
 	// `Arquitetura Limpa` em Camadas
 	var useControllers = controller.Init(
@@ -54,4 +51,19 @@ func RunServerAPI() {
 	Routers(server, useControllers)
 
 	server.Run(":8000")
+}
+
+func CreateTable(database *sql.DB) {
+	var _, err = database.Exec(`
+		CREATE TABLE IF NOT EXISTS ToDo (
+			id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+			Title TEXT,
+			Content TEXT,
+			Status Boolean
+		);`,
+	)
+
+	if err != nil {
+		fmt.Println("Erro", err)
+	}
 }
