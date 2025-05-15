@@ -9,10 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
-	"app/controller"
-	"app/db"
-	"app/repository"
-	"app/usecase"
+	"app/internal/controller"
+	"app/internal/db"
+	"app/internal/repository"
+	"app/internal/usecase"
 )
 
 func RunServerAPI() {

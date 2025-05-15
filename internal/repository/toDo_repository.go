@@ -7,7 +7,7 @@ import (
 
 	_ "github.com/lib/pq" // Importar drive
 
-	"app/model"
+	"app/internal/model"
 )
 
 type ToDo_Repository struct {

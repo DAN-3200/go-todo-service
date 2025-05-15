@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"app/controller"
+	"app/internal/controller"
 	"app/pkg"
 )
 

@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"time"
 
-	"app/db"
-	"app/model"
-	"app/repository"
+	"app/internal/db"
+	"app/internal/model"
+	"app/internal/repository"
 )
 
 type ToDo_UseCase struct {

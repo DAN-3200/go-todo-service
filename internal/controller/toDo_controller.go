@@ -8,9 +8,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"app/model"
+	"app/internal/model"
+	"app/internal/usecase"
 	"app/pkg"
-	"app/usecase"
 )
 
 type ToDo_Controller struct {
