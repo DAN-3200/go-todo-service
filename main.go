@@ -1,7 +1,7 @@
 package main
 
 import (
-	core "app/infrastructure"
+	core "app/internal/infrastructure"
 )
 
 func main() {
