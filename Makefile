@@ -3,12 +3,22 @@
 # Evitar conflito com nome de arquivos
 .PHONY: dev test db-main db-test
 
-dev: # hot-reload
+# executar codigo
+run: 
+   go run .
+
+# hot-reload
+dev: 
 	air
+
+# rodar todos os tests (unitários e integração)
 test: 
 	go test ./...
-db-main: # banco principal
-	docker compose -f 'docker-compose.yml' up -d --build 'database'
-db-test: # banco secundario
-	docker compose -f 'docker-compose.yml' up -d --build 'db-test'
 
+# rodar banco principal no docker
+db-main:
+	docker compose -f 'docker-compose.yml' up -d --build 'database'
+
+ # rodar banco para tests (integração) no docker
+db-test:
+	docker compose -f 'docker-compose.yml' up -d --build 'db-test'
