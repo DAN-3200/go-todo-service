@@ -1,4 +1,5 @@
+.vscode
+/tmp
 .env
 .txt
-dump.rdb
-.vscode
+todo
