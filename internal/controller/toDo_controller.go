@@ -1,136 +1,132 @@
-// Ponto de entrada do sistema responsável por tratar as requests e responses (dependem de UseCases)
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 
-	"app/internal/model"
+	"app/internal/dto"
 	"app/internal/usecase"
-	"app/pkg"
 )
 
-type ToDo_Controller struct {
-	ToDoUseCase usecase.ToDo_UseCase
+type LayerController struct {
+	UseCase *usecase.LayerUseCase
 }
 
 // -- Constructor
-func Init(usecase usecase.ToDo_UseCase) *ToDo_Controller {
-	return &ToDo_Controller{
-		ToDoUseCase: usecase,
+func InitLayer(usecase *usecase.LayerUseCase) *LayerController {
+	return &LayerController{
+		UseCase: usecase,
 	}
 }
 
-// -- Methods
-func (it *ToDo_Controller) Create(ctx *gin.Context) {
-	// tratando `request`
-	var request model.ToDo
-	if err := ctx.BindJSON(&request); err != nil {
-		fmt.Println("Erro na leitura da requisição")
-		ctx.JSON(http.StatusBadRequest, "Erro na leitura da requisição")
-		return
-	}
+// ------------------------------------------------------------------
 
-	// Executando useCase
-	err := it.ToDoUseCase.Create_ToDo(request)
+func (it *LayerController) SaveToDo(ctx *gin.Context) {
+	request, err := MapReqJSON[dto.ToDoReq](ctx)
 	if err != nil {
-		fmt.Println("Erro useCase")
-		ctx.JSON(http.StatusBadRequest, "Erro!")
+		ctx.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	// emitindo `response` 200 (StatusOK)
-	ctx.JSON(http.StatusOK, "ToDo Criado")
+	id, err := it.UseCase.SaveToDo(*request)
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"msg": "ToDo Criado", "id": id})
 }
 
-func (it *ToDo_Controller) Read(ctx *gin.Context) {
-	// tratando `request`
+func (it *LayerController) GetToDo(ctx *gin.Context) {
+	paramID := ctx.Param("id")
+	if paramID == "" {
+		ctx.String(http.StatusBadRequest, "Id não fornecido")
+		return
+	}
+
+	idParam, err := strconv.Atoi(paramID)
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response, err := it.UseCase.GetToDo(int64(idParam))
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (it *LayerController) GetToDoList(ctx *gin.Context) {
+	response, err := it.UseCase.GetToDoList()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (it *LayerController) EditToDo(ctx *gin.Context) {
+	paramID := ctx.Param("id")
+	if paramID == "" {
+		ctx.String(http.StatusBadRequest, "Id não fornecido")
+		return
+	}
+
+	request, err := MapReqJSON[dto.ToDoEditReq](ctx)
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	id, err := strconv.Atoi(paramID)
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	err = it.UseCase.EditToDo(int64(id), *request)
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.String(http.StatusOK, "ToDo atualizado")
+}
+
+func (it *LayerController) DeleteToDo(ctx *gin.Context) {
 	request := ctx.Param("id")
 	if request == "" {
-		ctx.JSON(http.StatusBadRequest, "Id não fornecido")
+		ctx.String(http.StatusBadRequest, "Id não fornecido")
+		return
 	}
 
 	idParam, err := strconv.Atoi(request)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, "Id inválido")
-	}
-
-	// Executando useCase
-	response, err := it.ToDoUseCase.Read_ToDo(idParam)
-	if err != nil {
-		fmt.Println("Erro useCase")
-		ctx.JSON(http.StatusBadRequest, "Erro!")
+		ctx.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	// emitindo `response` 200 (StatusOK)
-	ctx.JSON(http.StatusOK, response)
+	err = it.UseCase.DeleteToDo(int64(idParam))
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ctx.String(http.StatusOK, "ToDo deletado")
 }
 
-func (it *ToDo_Controller) Read_All(ctx *gin.Context) {
-	// Validação JWT
-	var _token = ctx.Request.Header.Get("Authorization")
-	if !pkg.ValidateJWT(_token) {
-		ctx.JSON(403, "Token não autorizado")
-		return
-	}
+// ------------------------------------------------------------------
 
-	// Executando useCase
-	var response, err = it.ToDoUseCase.Read_ToDoAll()
-	if err != nil {
-		fmt.Println("Erro UseCase", err)
-		ctx.JSON(http.StatusBadRequest, "Erro InternalServer")
-		return
-	}
-
-	// emitindo `response` 200 (StatusOK)
-	ctx.JSON(http.StatusOK, response)
-}
-
-func (it *ToDo_Controller) Update(ctx *gin.Context) {
-	// tratando `request`
-	var request model.ToDo
+func MapReqJSON[T any](ctx *gin.Context) (*T, error) {
+	var request T
 	if err := ctx.BindJSON(&request); err != nil {
-		fmt.Println("Erro na leitura da requisição")
-		ctx.JSON(http.StatusBadRequest, "Erro na leitura da requisição")
-		return
+		return &request, err
 	}
-
-	// executando useCase
-	err := it.ToDoUseCase.Update_ToDo(request)
-	if err != nil {
-		fmt.Println("Erro useCase")
-		ctx.JSON(http.StatusBadRequest, "Erro")
-		return
-	}
-
-	// emitindo `response`
-	ctx.JSON(http.StatusOK, "ToDo atualizado")
-}
-
-func (it *ToDo_Controller) Delete(ctx *gin.Context) {
-	// tratando `request`
-	request := ctx.Param("id")
-	if request == "" {
-		ctx.JSON(http.StatusBadRequest, "Id não fornecido")
-	}
-
-	idParam, err := strconv.Atoi(request)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, "Id inválido")
-	}
-
-	// Executando useCase
-	erro := it.ToDoUseCase.Delete_ToDo(idParam)
-	if erro != nil {
-		fmt.Println("Erro useCase")
-		ctx.JSON(http.StatusBadRequest, "Erro!")
-		return
-	}
-
-	// emitindo `response` 200 (StatusOK)
-	ctx.JSON(http.StatusOK, "ToDo deletado")
+	return &request, nil
 }
