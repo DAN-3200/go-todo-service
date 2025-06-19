@@ -1,51 +1,54 @@
-// Abstração de acesso aos dados (dependem de frameworks/bancos, usados por UseCases)
 package repository
 
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	_ "github.com/lib/pq" // Importar drive
 
-	"app/internal/model"
+	"app/internal/dto"
+	"app/pkg/utils"
 )
 
-type ToDo_Repository struct {
-	ConnectDB *sql.DB
+type LayerRepository struct {
+	DB *sql.DB
 }
 
-// -- Contructor
-func Init(connection *sql.DB) ToDo_Repository {
-	return ToDo_Repository{
-		ConnectDB: connection,
+func InitLayer(connection *sql.DB) (*LayerRepository, error) {
+	if err := connection.Ping(); err != nil {
+		return &LayerRepository{}, err
 	}
+	return &LayerRepository{
+		DB: connection,
+	}, nil
 }
 
-// -- Methods
-func (it *ToDo_Repository) Insert_ToDo_DB(newToDo model.ToDo) error {
-	// Conexão com o Banco de dados
-	Conn := it.ConnectDB
+// ------------------------------------------------------------------
 
-	query := `INSERT INTO ToDo (title, content, status) VALUES ($1, $2, $3)`
-	_, err := Conn.Exec(query, newToDo.Title, newToDo.Content, newToDo.Status)
+func (it *LayerRepository) SaveToDo(newToDo dto.ToDoReq) (int64, error) {
+	query := `INSERT INTO ToDo (title, content, status) VALUES ($1, $2, $3) RETURNING id`
+
+	var id int64
+	err := it.DB.QueryRow(query, newToDo.Title, newToDo.Content, newToDo.Status).Scan(&id)
 	if err != nil {
-		fmt.Println(`Erro Insert! \n`, err)
-		return err
+		return 0, err
 	}
 
-	return nil
+	return id, nil
 }
 
-func (it *ToDo_Repository) Select_ToDo_DB(id int) (model.ToDo, error) {
-	// Conexão com o banco de dados
-	Conn := it.ConnectDB
+func (it *LayerRepository) GetToDo(id int64) (dto.ToDoRes, error) {
+	row := it.DB.QueryRow(`SELECT id, title, content, status, created_at FROM ToDo WHERE id=$1`, id)
 
-	// Consulta ao banco a partir dos parametros
-	var toDo model.ToDo
-	row := Conn.QueryRow(
-		`SELECT id, title, content, status FROM ToDo WHERE id=$1`, id,
+	var todo dto.ToDoRes
+	err := row.Scan(
+		&todo.ID,
+		&todo.Title,
+		&todo.Content,
+		&todo.Status,
+		&todo.CreatedAt,
 	)
-	err := row.Scan(&toDo.Id, &toDo.Title, &toDo.Content, &toDo.Status)
 
 	// Tratamento de erro de consulta
 	if err != nil {
@@ -54,66 +57,88 @@ func (it *ToDo_Repository) Select_ToDo_DB(id int) (model.ToDo, error) {
 		} else {
 			fmt.Println("Erro de consulta: ", err)
 		}
-		return model.ToDo{}, err
+		return dto.ToDoRes{}, err
 	}
 
-	return toDo, nil
+	return todo, nil
 }
 
-func (it *ToDo_Repository) Select_All_ToDo_DB() ([]model.ToDo, error) {
-	var Conn = it.ConnectDB
+func (it *LayerRepository) GetToDoList() ([]dto.ToDoRes, error) {
+	query := `SELECT id, title, content, status, created_at FROM ToDo`
+	rows, err := it.DB.Query(query)
+	defer rows.Close()
 
-	// Consulta
-	var query = `SELECT id, title, content, status FROM ToDo`
-	var rows, err = Conn.Query(query)
 	if err != nil {
-		fmt.Println("Erro de consulta | ", err)
-		return []model.ToDo{}, err
+		return []dto.ToDoRes{}, err
 	}
 
-	var toDoList []model.ToDo
-	var item model.ToDo
-
+	var todoList []dto.ToDoRes
+	var todo dto.ToDoRes
 	for rows.Next() {
 		var err = rows.Scan(
-			&item.Id,
-			&item.Title,
-			&item.Content,
-			&item.Status,
+			&todo.ID,
+			&todo.Title,
+			&todo.Content,
+			&todo.Status,
+			&todo.CreatedAt,
 		)
 		if err != nil {
-			fmt.Println(err)
-			return []model.ToDo{}, err
+			return []dto.ToDoRes{}, err
 		}
-		toDoList = append(toDoList, item)
+		todoList = append(todoList, todo)
 	}
-	rows.Close()
 
-	return toDoList, nil
+	return todoList, nil
 }
 
-func (it *ToDo_Repository) Update_ToDo_DB(mToDo model.ToDo) error {
-	Conn := it.ConnectDB
-
-	query := `UPDATE ToDo SET title=$1, content=$2, status = $3 WHERE id = $4`
-	_, err := Conn.Exec(query, mToDo.Title, mToDo.Content, mToDo.Status, mToDo.Id)
+func (it *LayerRepository) EditToDo(id int64, newInfo dto.ToDoEditReq) error {
+	cols, args, err := utils.MapSQLInsertFields(
+		map[string]string{
+			"Title":   "title",
+			"Content": "content",
+			"Status":  "status",
+		},
+		newInfo,
+	)
 	if err != nil {
-		fmt.Println("Erro ao atulizar campo da table: ", err)
+		return err
+	}
+
+	query := fmt.Sprintf(`UPDATE ToDo SET %s WHERE id=%d`, strings.Join(cols, ", "), id)
+	// fmt.Println(query)
+	_, err = it.DB.Exec(query, args...)
+	if err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (it *ToDo_Repository) Delete_ToDo_DB(id int) error {
-	Conn := it.ConnectDB
-
-	query := `DELETE FROM ToDo WHERE id = $1`
-	_, err := Conn.Exec(query, id)
+func (it *LayerRepository) DeleteToDo(id int64) error {
+	query := `DELETE FROM ToDo WHERE id=$1`
+	_, err := it.DB.Exec(query, id)
 	if err != nil {
-		fmt.Println("Erro ao excluir: ", err)
 		return err
 	}
 
+	return nil
+}
+
+func (it *LayerRepository) CreateTable() error {
+	_, err := it.DB.Exec(`
+		CREATE TABLE IF NOT EXISTS ToDo (
+			id SERIAL PRIMARY KEY,
+			title TEXT,
+			content TEXT,
+			status BOOLEAN,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);	
+	`,
+	)
+
+	if err != nil {
+		fmt.Println("Erro: ", err)
+		return err
+	}
 	return nil
 }
