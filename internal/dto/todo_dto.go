@@ -10,7 +10,7 @@ type ToDoReq struct {
 }
 
 type ToDoRes struct {
-	ID        int64       `json:"id"`
+	ID        int64     `json:"id"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
 	Status    bool      `json:"status"`
