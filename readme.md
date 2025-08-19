@@ -96,7 +96,7 @@ db-test:
 | <kbd>POST /todo</kbd>     | Criar uma nova tarefa                     |
 | <kbd>GET /todo/:id</kbd>  | Buscar tarefa específica por ID          |
 | <kbd>GET /todo</kbd>      | Listar todas as tarefas                  |
-| <kbd>PATCH /todo/:id</kbd>| Atualizar uma tarefa existente por ID   |
+| <kbd>PATCH /todo/:id</kbd>| Editar uma tarefa existente por ID   |
 | <kbd>DELETE /todo/:id</kbd>| Remover uma tarefa existente por ID     |
 
 > [Link publico do Postman](https://www.postman.com/dan-3200/workspace/publico/collection/43029232-dfa83f1a-5ff2-47f7-a0ab-7cf1d0adb96c?action=share&creator=43029232)
