@@ -6,8 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"app/internal/dto"
-	"app/internal/usecase"
+	"app/internal/inner/dto"
+	"app/internal/inner/usecase"
+	"app/pkg/utils"
 )
 
 type LayerController struct {
@@ -24,7 +25,7 @@ func InitLayer(usecase *usecase.LayerUseCase) *LayerController {
 // ------------------------------------------------------------------
 
 func (it *LayerController) SaveToDo(ctx *gin.Context) {
-	request, err := MapReqJSON[dto.ToDoReq](ctx)
+	request, err := utils.MapReqJSON[dto.ToDoReq](ctx)
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return
@@ -78,7 +79,7 @@ func (it *LayerController) EditToDo(ctx *gin.Context) {
 		return
 	}
 
-	request, err := MapReqJSON[dto.ToDoEditReq](ctx)
+	request, err := utils.MapReqJSON[dto.ToDoEditReq](ctx)
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return
@@ -119,14 +120,4 @@ func (it *LayerController) DeleteToDo(ctx *gin.Context) {
 	}
 
 	ctx.String(http.StatusOK, "ToDo deletado")
-}
-
-// ------------------------------------------------------------------
-
-func MapReqJSON[T any](ctx *gin.Context) (*T, error) {
-	var request T
-	if err := ctx.BindJSON(&request); err != nil {
-		return &request, err
-	}
-	return &request, nil
 }

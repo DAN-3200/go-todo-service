@@ -19,27 +19,46 @@ O projeto foi criado com foco em aprendizado, aplicando princípios de design co
 ## Estrutura do projeto (Clean Architecture)
 ```
 ├── internal
-│   ├── contracts       # Interfaces e definições de contratos
-│   ├── controller      # Controladores (camada de entrega)
-│   ├── db              # Conexão e setup de banco de dados
-│   ├── dto             # Data Transfer Objects
-│   ├── model           # Entidades (models/domínio)
-│   ├── repository      # Implementação dos repositórios
-│   ├── server          # Inicialização e rotas do servidor
-│   ├── tests           # Testes automatizados
-│   └── usecase         # Casos de uso (regras de negócio)
-├── pkg                 # Pacotes reutilizáveis
-├── main.go             # Ponto de entrada da aplicação
-├── go.mod              # Dependências do Go
-├── go.sum              # Hash das dependências
-├── .env.example        # Exemplo de variáveis de ambiente
-├── docker-compose.yml  # Configuração de containers
-├── Makefile            # Atalhos de build/comando
+│   ├── inner                    # Núcleo da aplicação (core)
+│   │   ├── entity               # Entidades / Domínio
+│   │   ├── usecase              # Casos de uso (Application Layer)
+│   │   ├── ports                # Interfaces (contratos)
+│   │   └── dto                  # DTOs internos
+│   │
+│   └── outer                    # Infraestrutura / Adapters
+│       ├── http                 # Camada de entrega (REST)
+│       │   ├── controller       # Controllers / Handlers
+│       │   └── server           # Setup do servidor e rotas
+│       │
+│       └── persistence          # Camada de dados
+│           ├── db               # Conexão com banco
+│           └── repository       # Implementação dos repositórios
+│
+├── pkg                          # Pacotes reutilizáveis
+│   └── utils
+│
+├── tests                        # Testes automatizados
+│   ├── unit                     # Testes unitários
+│   └── integration              # Testes de integração
+│
+├── main.go                      # Ponto de entrada
+├── go.mod                       # Dependências
+├── go.sum                       # Hash das dependências
+├── .env.example                 # Variáveis de ambiente
+├── docker-compose.yml           # Containers
+├── Makefile                     # Automação
 └── README.md
 ```
 ---
 
-### Model (Entity ToDo)
+Separei o ``internal`` em ``inner`` e ``outer`` para isolar as regras de negócio da infraestrutura.
+
+O ``inner`` concentra o núcleo da aplicação (entidades, casos de uso e contratos), sem depender de banco, HTTP ou frameworks.
+O ``outer`` contém apenas os adaptadores (API, banco, servidor), que podem mudar sem afetar o core.
+
+Assim, reduzo acoplamento, facilito testes e mantenho o sistema independente de tecnologia.
+
+### Entity ToDo
 ```golang
 type ToDo struct {
 	ID        int64     `json:"id"`

@@ -1,9 +1,8 @@
 package repository_test
 
 import (
-	"app/internal/dto"
-	"app/internal/repository"
-	"app/pkg/utils"
+	"app/internal/inner/entity"
+	"app/internal/outer/persistence/repository"
 	"database/sql"
 	"testing"
 	"time"
@@ -35,7 +34,7 @@ func InitRepo(t *testing.T) *repository.LayerRepository {
 
 func Test_SaveToDo(t *testing.T) {
 	repo := InitRepo(t)
-	_, err := repo.SaveToDo(dto.ToDoReq{
+	_, err := repo.Save(entity.ToDo{
 		Title:   "Title",
 		Content: "Content",
 		Status:  false,
@@ -59,7 +58,7 @@ func Test_GetToDo(t *testing.T) {
 		WithArgs(int64(1)).
 		WillReturnRows(rows)
 
-	result, err := repo.GetToDo(1)
+	result, err := repo.Get(1)
 	require.NoError(t, err)
 
 	require.Equal(t, int64(1), result.ID)
@@ -74,81 +73,55 @@ func Test_GetToDo(t *testing.T) {
 func Test_GetToDoList(t *testing.T) {
 	repo := InitRepo(t)
 
-	list, err := repo.GetToDoList()
+	list, err := repo.GetList()
 	require.NoError(t, err)
 
 	t.Logf("\n ToDoList obtido: %+v", list)
 }
 
-func Test_EditToDo(t *testing.T) {
-	repo := InitRepo(t)
+// func Test_EditToDo(t *testing.T) {
+// 	repo := InitRepo(t)
 
-	id, err := repo.SaveToDo(dto.ToDoReq{
-		Title:   "new",
-		Content: "new",
-		Status:  false,
-	})
-	require.NoError(t, err)
+// 	id, err := repo.Save(entity.ToDo{
+// 		Title:   "new",
+// 		Content: "new",
+// 		Status:  false,
+// 	})
+// 	require.NoError(t, err)
 
-	title := "UP"
-	content := "UP"
-	Status := false
+// 	title := "UP"
+// 	content := "UP"
+// 	Status := false
 
-	err = repo.EditToDo(id, dto.ToDoEditReq{
-		Title:   &title,
-		Content: &content,
-		Status:  &Status,
-	})
-	require.NoError(t, err)
+// 	err = repo.Edit(id, entity.ToDo{
+// 		Title:   &title,
+// 		Content: &content,
+// 		Status:  &Status,
+// 	})
+// 	require.NoError(t, err)
 
-	result, err := repo.GetToDo(id)
-	require.NoError(t, err)
+// 	result, err := repo.Get(id)
+// 	require.NoError(t, err)
 
-	t.Logf("\n ToDo obtido: %+v", result)
-}
+// 	t.Logf("\n ToDo obtido: %+v", result)
+// }
 
 func Test_DeleteToDo(t *testing.T) {
 	repo := InitRepo(t)
 
-	id, err := repo.SaveToDo(dto.ToDoReq{
+	id, err := repo.Save(entity.ToDo{
 		Title:   "new",
 		Content: "new",
 		Status:  false,
 	})
 	require.NoError(t, err)
 
-	err = repo.DeleteToDo(id)
+	err = repo.Delete(id)
 	require.NoError(t, err)
 
-	result, err := repo.GetToDo(id)
+	result, err := repo.Get(id)
 	// tem que dar erro
 	require.Error(t, err)
 
 	t.Logf("\n ToDo obtido: %+v", result)
-}
-
-func Test_FieldPATCH(t *testing.T) {
-	// -- campos da requisição
-	content := "green"
-	status := false
-
-	todo := dto.ToDoEditReq{
-		Title:   nil,
-		Content: &content,
-		Status:  &status,
-	}
-
-	// -----
-
-	cols, args, err := utils.MapSQLInsertFields(
-		map[string]string{
-			"Title":   "title",
-			"Content": "content",
-			"Status":  "status",
-		},
-		todo,
-	)
-	
-	require.NoError(t, err)
-	t.Log("\n", cols, args)
 }

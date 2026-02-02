@@ -1,7 +1,10 @@
 // DTO (Data Transfer Object)
 package dto
 
-import "time"
+import (
+	"app/internal/inner/entity"
+	"time"
+)
 
 type ToDoReq struct {
 	Title   string `json:"title" binding:"required"`
@@ -21,4 +24,25 @@ type ToDoEditReq struct {
 	Title   *string `json:"title"`
 	Content *string `json:"content"`
 	Status  *bool   `json:"status"`
+}
+
+
+func ToDTO(t entity.ToDo) ToDoRes {
+	return ToDoRes{
+		ID:      t.ID,
+		Title:   t.Title,
+		Content: t.Content,
+		Status:  t.Status,
+		CreatedAt: t.CreatedAt,
+	}
+}
+
+func ToDTOList(list []entity.ToDo) []ToDoRes {
+	res := make([]ToDoRes, 0, len(list))
+
+	for _, t := range list {
+		res = append(res, ToDTO(t))
+	}
+
+	return res
 }

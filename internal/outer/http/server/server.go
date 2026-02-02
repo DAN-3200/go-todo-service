@@ -1,10 +1,10 @@
 package server
 
 import (
-	"app/internal/controller"
-	"app/internal/db"
-	"app/internal/repository"
-	"app/internal/usecase"
+	"app/internal/outer/http/controller"
+	"app/internal/outer/persistence/db"
+	"app/internal/outer/persistence/repository"
+	"app/internal/inner/usecase"
 	"log"
 	"time"
 

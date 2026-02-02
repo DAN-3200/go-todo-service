@@ -3,13 +3,14 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"strings"
 
 	_ "github.com/lib/pq" // Importar drive
 
-	"app/internal/dto"
-	"app/pkg/utils"
+	"app/internal/inner/entity"
+	sq "github.com/Masterminds/squirrel"
 )
+
+var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 type LayerRepository struct {
 	DB *sql.DB
@@ -26,11 +27,11 @@ func InitLayer(connection *sql.DB) (*LayerRepository, error) {
 
 // ------------------------------------------------------------------
 
-func (it *LayerRepository) SaveToDo(newToDo dto.ToDoReq) (int64, error) {
+func (it *LayerRepository) Save(info entity.ToDo) (int64, error) {
 	query := `INSERT INTO ToDo (title, content, status) VALUES ($1, $2, $3) RETURNING id`
 
 	var id int64
-	err := it.DB.QueryRow(query, newToDo.Title, newToDo.Content, newToDo.Status).Scan(&id)
+	err := it.DB.QueryRow(query, info.Title, info.Content, info.Status).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -38,10 +39,10 @@ func (it *LayerRepository) SaveToDo(newToDo dto.ToDoReq) (int64, error) {
 	return id, nil
 }
 
-func (it *LayerRepository) GetToDo(id int64) (dto.ToDoRes, error) {
+func (it *LayerRepository) Get(id int64) (entity.ToDo, error) {
 	row := it.DB.QueryRow(`SELECT id, title, content, status, created_at FROM ToDo WHERE id=$1`, id)
 
-	var todo dto.ToDoRes
+	var todo entity.ToDo
 	err := row.Scan(
 		&todo.ID,
 		&todo.Title,
@@ -57,23 +58,23 @@ func (it *LayerRepository) GetToDo(id int64) (dto.ToDoRes, error) {
 		} else {
 			fmt.Println("Erro de consulta: ", err)
 		}
-		return dto.ToDoRes{}, err
+		return entity.ToDo{}, err
 	}
 
 	return todo, nil
 }
 
-func (it *LayerRepository) GetToDoList() ([]dto.ToDoRes, error) {
+func (it *LayerRepository) GetList() ([]entity.ToDo, error) {
 	query := `SELECT id, title, content, status, created_at FROM ToDo`
 	rows, err := it.DB.Query(query)
 	defer rows.Close()
 
 	if err != nil {
-		return []dto.ToDoRes{}, err
+		return []entity.ToDo{}, err
 	}
 
-	var todoList []dto.ToDoRes
-	var todo dto.ToDoRes
+	var todoList []entity.ToDo
+	var todo entity.ToDo
 	for rows.Next() {
 		var err = rows.Scan(
 			&todo.ID,
@@ -83,7 +84,7 @@ func (it *LayerRepository) GetToDoList() ([]dto.ToDoRes, error) {
 			&todo.CreatedAt,
 		)
 		if err != nil {
-			return []dto.ToDoRes{}, err
+			return []entity.ToDo{}, err
 		}
 		todoList = append(todoList, todo)
 	}
@@ -91,22 +92,19 @@ func (it *LayerRepository) GetToDoList() ([]dto.ToDoRes, error) {
 	return todoList, nil
 }
 
-func (it *LayerRepository) EditToDo(id int64, newInfo dto.ToDoEditReq) error {
-	cols, args, err := utils.MapSQLInsertFields(
-		map[string]string{
-			"Title":   "title",
-			"Content": "content",
-			"Status":  "status",
-		},
-		newInfo,
-	)
+func (it *LayerRepository) Edit(info entity.ToDo) error {
+	q := psql.Update("ToDo").
+		Set("title", info.Title).
+		Set("content", info.Content).
+		Set("status", info.Status).
+		Where(sq.Eq{"id": info.ID})
+
+	sql, args, err := q.ToSql()
 	if err != nil {
 		return err
 	}
 
-	query := fmt.Sprintf(`UPDATE ToDo SET %s WHERE id=%d`, strings.Join(cols, ", "), id)
-	// fmt.Println(query)
-	_, err = it.DB.Exec(query, args...)
+	_, err = it.DB.Exec(sql, args...)
 	if err != nil {
 		return err
 	}
@@ -114,7 +112,7 @@ func (it *LayerRepository) EditToDo(id int64, newInfo dto.ToDoEditReq) error {
 	return nil
 }
 
-func (it *LayerRepository) DeleteToDo(id int64) error {
+func (it *LayerRepository) Delete(id int64) error {
 	query := `DELETE FROM ToDo WHERE id=$1`
 	_, err := it.DB.Exec(query, id)
 	if err != nil {

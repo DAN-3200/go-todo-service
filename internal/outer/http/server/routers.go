@@ -3,7 +3,7 @@ package server
 import (
 	"github.com/gin-gonic/gin"
 
-	"app/internal/controller"
+	"app/internal/outer/http/controller"
 )
 
 func Routers(server *gin.Engine, handles *controller.LayerController) {

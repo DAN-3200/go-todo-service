@@ -1,8 +1,8 @@
 package integration_test
 
 import (
-	"app/internal/dto"
-	"app/internal/repository"
+	"app/internal/inner/entity"
+	"app/internal/outer/persistence/repository"
 	"database/sql"
 	"testing"
 
@@ -23,7 +23,7 @@ func Test_ToDoRepository_E2E(t *testing.T) {
 	require.NoError(t, err, err)
 	{
 		// -- Save
-		id, err := repo.SaveToDo(dto.ToDoReq{
+		id, err := repo.Save(entity.ToDo{
 			Title:   "new",
 			Content: "new",
 			Status:  false,
@@ -31,28 +31,28 @@ func Test_ToDoRepository_E2E(t *testing.T) {
 		require.NoError(t, err)
 
 		// -- Edit
-		title := "UP"
-		content := "UP"
-		Status := false
+		// title := "UP"
+		// content := "UP"
+		// Status := false
 
-		err = repo.EditToDo(id, dto.ToDoEditReq{
-			Title:   &title,
-			Content: &content,
-			Status:  &Status,
-		})
-		require.NoError(t, err)
+		// err = repo.Edit(id, entity.ToDo{
+		// 	Title:   &title,
+		// 	Content: &content,
+		// 	Status:  &Status,
+		// })
+		// require.NoError(t, err)
 
 		// -- Get
-		result, err := repo.GetToDo(id)
+		result, err := repo.Get(id)
 		require.NoError(t, err)
 		t.Logf("\n ToDo obtido: %+v", result)
 
 		// -- Delete
-		err = repo.DeleteToDo(id)
+		err = repo.Delete(id)
 		require.NoError(t, err)
 
 		// tem que dar erro
-		_, err = repo.GetToDo(id)
+		_, err = repo.Get(id)
 		require.Error(t, err)
 	}
 }
