@@ -1,5 +1,4 @@
-// DTO (Data Transfer Object)
-package dto
+package contracts
 
 import (
 	"app/internal/inner/entity"
@@ -26,22 +25,21 @@ type ToDoEditReq struct {
 	Status  *bool   `json:"status"`
 }
 
-
-func ToDTO(t entity.ToDo) ToDoRes {
+func ToToDoRes(t entity.ToDo) ToDoRes {
 	return ToDoRes{
-		ID:      t.ID,
-		Title:   t.Title,
-		Content: t.Content,
-		Status:  t.Status,
+		ID:        t.ID,
+		Title:     t.Title,
+		Content:   t.Content,
+		Status:    t.Status,
 		CreatedAt: t.CreatedAt,
 	}
 }
 
-func ToDTOList(list []entity.ToDo) []ToDoRes {
+func ToToDoResList(list []entity.ToDo) []ToDoRes {
 	res := make([]ToDoRes, 0, len(list))
 
 	for _, t := range list {
-		res = append(res, ToDTO(t))
+		res = append(res, ToToDoRes(t))
 	}
 
 	return res

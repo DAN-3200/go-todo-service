@@ -6,7 +6,7 @@
 
 ## Descrição 
 
-API RESTful para gerenciamento de tarefas (ToDos), desenvolvida em Golang com o framework HTTP Gin e banco de dados PostgreSQL, seguindo o padrão Clean Architecture. Permite criar, listar, atualizar e remover tarefas por meio de endpoints REST.
+API RESTful para gerenciamento de tarefas (ToDos), desenvolvida em Golang com o framework HTTP Gin e banco de dados PostgreSQL, inspirada no padrão Clean Architecture. Permite criar, listar, atualizar e remover tarefas por meio de endpoints REST.
 
 O projeto foi criado com foco em aprendizado, aplicando princípios de design como SOLID e o padrão Singleton.
 
@@ -16,14 +16,14 @@ O projeto foi criado com foco em aprendizado, aplicando princípios de design co
 - `PostgreSQL`
 - `Docker`
 
-## Estrutura do projeto (Clean Architecture)
+## Estrutura do projeto (Inspirada em Clean Architecture)
 ```
 ├── internal
 │   ├── inner                    # Núcleo da aplicação (core)
 │   │   ├── entity               # Entidades / Domínio
 │   │   ├── usecase              # Casos de uso (Application Layer)
 │   │   ├── ports                # Interfaces (contratos)
-│   │   └── dto                  # DTOs internos
+│   │   └── contracts            # Contratos de input e output
 │   │
 │   └── outer                    # Infraestrutura / Adapters
 │       ├── http                 # Camada de entrega (REST)
