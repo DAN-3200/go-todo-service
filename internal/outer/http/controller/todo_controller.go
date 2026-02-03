@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"app/internal/inner/contracts"
+	"app/internal/inner/dto"
 	"app/internal/inner/usecase"
 	"app/pkg/utils"
 )
@@ -25,7 +25,7 @@ func InitLayer(usecase *usecase.LayerUseCase) *LayerController {
 // ------------------------------------------------------------------
 
 func (it *LayerController) SaveToDo(ctx *gin.Context) {
-	request, err := utils.MapReqJSON[contracts.ToDoReq](ctx)
+	request, err := utils.MapReqJSON[dto.ToDoReq](ctx)
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return
@@ -79,7 +79,7 @@ func (it *LayerController) EditToDo(ctx *gin.Context) {
 		return
 	}
 
-	request, err := utils.MapReqJSON[contracts.ToDoEditReq](ctx)
+	request, err := utils.MapReqJSON[dto.ToDoEditReq](ctx)
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return

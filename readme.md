@@ -23,7 +23,7 @@ O projeto foi criado com foco em aprendizado, aplicando princípios de design co
 │   │   ├── entity               # Entidades / Domínio
 │   │   ├── usecase              # Casos de uso (Application Layer)
 │   │   ├── ports                # Interfaces (contratos)
-│   │   └── contracts            # Contratos de input e output
+│   │   └── dto            		# Modelos de input e output entre camadas
 │   │
 │   └── outer                    # Infraestrutura / Adapters
 │       ├── http                 # Camada de entrega (REST)

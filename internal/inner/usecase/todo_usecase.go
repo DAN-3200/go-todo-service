@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"app/internal/inner/contracts"
+	"app/internal/inner/dto"
 	"app/internal/inner/entity"
 	"app/internal/inner/ports"
 	"fmt"
@@ -19,7 +19,7 @@ func InitLayer(repository ports.Irepository[entity.ToDo]) *LayerUseCase {
 
 // ------------------------------------------------------------------
 
-func (it *LayerUseCase) SaveToDo(info contracts.ToDoReq) (int64, error) {
+func (it *LayerUseCase) SaveToDo(info dto.ToDoReq) (int64, error) {
 	todo := entity.NewToDo(info.Title, info.Content)
 	id, err := it.Repo.Save(*todo)
 
@@ -30,25 +30,25 @@ func (it *LayerUseCase) SaveToDo(info contracts.ToDoReq) (int64, error) {
 	return id, nil
 }
 
-func (it *LayerUseCase) GetToDo(id int64) (contracts.ToDoRes, error) {
+func (it *LayerUseCase) GetToDo(id int64) (dto.ToDoRes, error) {
 	result, err := it.Repo.Get(id)
 	if err != nil {
-		return contracts.ToDoRes{}, err
+		return dto.ToDoRes{}, err
 	}
 
-	return contracts.ToToDoRes(result), err
+	return dto.ToToDoRes(result), err
 }
 
-func (it *LayerUseCase) GetToDoList() ([]contracts.ToDoRes, error) {
+func (it *LayerUseCase) GetToDoList() ([]dto.ToDoRes, error) {
 	result, err := it.Repo.GetList()
 	if err != nil {
-		return []contracts.ToDoRes{}, err
+		return []dto.ToDoRes{}, err
 	}
 
-	return contracts.ToToDoResList(result), nil
+	return dto.ToToDoResList(result), nil
 }
 
-func (it *LayerUseCase) EditToDo(id int64, info contracts.ToDoEditReq) error {
+func (it *LayerUseCase) EditToDo(id int64, info dto.ToDoEditReq) error {
 
 	todo, err := it.Repo.Get(id)
 	if err != nil {

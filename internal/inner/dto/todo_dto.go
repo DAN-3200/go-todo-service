@@ -1,4 +1,4 @@
-package contracts
+package dto
 
 import (
 	"app/internal/inner/entity"
