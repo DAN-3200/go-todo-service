@@ -1,15 +1,16 @@
 package server
 
 import (
-	"app/internal/outer/http/controller"
-	"app/internal/outer/persistence/db"
-	"app/internal/outer/persistence/repository"
-	"app/internal/inner/usecase"
 	"log"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+
+	"app/internal/inner/usecase"
+	"app/internal/outer/http/controller"
+	"app/internal/outer/persistence/db"
+	"app/internal/outer/persistence/repository"
 )
 
 func RunServer() {
@@ -26,15 +27,32 @@ func RunServer() {
 		},
 	))
 
-	conn := db.ConnPostgreSQL()
+	conn, err := db.ConnPostgreSQL()
+	if err != nil {
+		log.Println("[error ao conectar com o banco de dados]:", err)
+		return
+	}
+	
 	repo, err := repository.InitLayer(conn)
 	if err != nil {
-		log.Fatal("Error de resposta", err)
+		log.Println("[error ao inicializar repositório]:", err)
+		return
 	}
-	repo.CreateTable()
+	
+	err = repo.CreateTable()
+	if err != nil {
+		log.Println("[error ao criar tabela]:", err)
+		return
+	}
+
 	useCase := usecase.InitLayer(repo)
 	controller := controller.InitLayer(useCase)
 
 	Routers(server, controller)
-	server.Run(":8000")
+	
+	err = server.Run(":8080")
+	if err != nil {
+		log.Println("[error ao iniciar servidor]:", err)
+		return
+	}
 }

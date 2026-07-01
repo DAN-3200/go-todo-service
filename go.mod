@@ -1,8 +1,6 @@
 module app
 
-go 1.24
-
-toolchain go1.24.1
+go 1.26.4
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2

@@ -2,12 +2,14 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
-	_ "github.com/lib/pq" // Importar drive
+	sq "github.com/Masterminds/squirrel"
+	// Importar drive
+	_ "github.com/lib/pq"
 
 	"app/internal/inner/entity"
-	sq "github.com/Masterminds/squirrel"
 )
 
 var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
@@ -27,7 +29,7 @@ func InitLayer(connection *sql.DB) (*LayerRepository, error) {
 
 // ------------------------------------------------------------------
 
-func (it *LayerRepository) Save(info entity.ToDo) (int64, error) {
+func (it *LayerRepository) Save(info *entity.ToDo) (int64, error) {
 	q := psql.Insert("todo").Columns("title", "content", "status").Values(info.Title, info.Content, info.Status).Suffix("RETURNING id")
 	query, args, err := q.ToSql()
 
@@ -40,7 +42,7 @@ func (it *LayerRepository) Save(info entity.ToDo) (int64, error) {
 	return id, nil
 }
 
-func (it *LayerRepository) Get(id int64) (entity.ToDo, error) {
+func (it *LayerRepository) Get(id int64) (*entity.ToDo, error) {
 	q := psql.Select("id", "title", "content", "status", "created_at").From("todo").Where(sq.Eq{"id": id})
 	query, args, err := q.ToSql()
 	row := it.DB.QueryRow(query, args...)
@@ -54,27 +56,27 @@ func (it *LayerRepository) Get(id int64) (entity.ToDo, error) {
 		&todo.CreatedAt,
 	)
 
-	// Tratamento de erro de consulta
 	if err != nil {
 		if err == sql.ErrNoRows {
-			fmt.Println("Nenhum registro encontro.")
-		} else {
-			fmt.Println("Erro de consulta: ", err)
+			return nil, errors.New("Nenhum registro encontro.")
 		}
-		return entity.ToDo{}, err
+		return nil, err
 	}
 
-	return todo, nil
+	return &todo, nil
 }
 
-func (it *LayerRepository) GetList() ([]entity.ToDo, error) {
+func (it *LayerRepository) GetList() (*[]entity.ToDo, error) {
 	q := psql.Select("id", "title", "content", "status", "created_at").From("todo")
 	query, _, err := q.ToSql()
 	rows, err := it.DB.Query(query)
+	if rows == nil {
+		return nil, fmt.Errorf("Nenhum linha afetada")
+	}
 	defer rows.Close()
 
 	if err != nil {
-		return []entity.ToDo{}, err
+		return nil, err
 	}
 
 	var todoList []entity.ToDo
@@ -88,15 +90,15 @@ func (it *LayerRepository) GetList() ([]entity.ToDo, error) {
 			&todo.CreatedAt,
 		)
 		if err != nil {
-			return []entity.ToDo{}, err
+			return nil, err
 		}
 		todoList = append(todoList, todo)
 	}
 
-	return todoList, nil
+	return &todoList, nil
 }
 
-func (it *LayerRepository) Edit(info entity.ToDo) error {
+func (it *LayerRepository) Edit(info *entity.ToDo) error {
 	q := psql.Update("todo").
 		Set("title", info.Title).
 		Set("content", info.Content).
@@ -145,7 +147,6 @@ func (it *LayerRepository) CreateTable() error {
 	)
 
 	if err != nil {
-		fmt.Println("Erro: ", err)
 		return err
 	}
 	return nil
