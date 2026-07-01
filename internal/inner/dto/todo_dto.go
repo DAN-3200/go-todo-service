@@ -1,8 +1,9 @@
 package dto
 
 import (
-	"app/internal/inner/entity"
 	"time"
+
+	"app/internal/inner/entity"
 )
 
 type ToDoReq struct {
@@ -25,21 +26,23 @@ type ToDoEditReq struct {
 	Status  *bool   `json:"status"`
 }
 
-func ToToDoRes(t entity.ToDo) ToDoRes {
-	return ToDoRes{
+func ToToDoRes(t entity.ToDo) *ToDoRes {
+	obj := ToDoRes{
 		ID:        t.ID,
 		Title:     t.Title,
 		Content:   t.Content,
 		Status:    t.Status,
 		CreatedAt: t.CreatedAt,
 	}
+
+	return &obj
 }
 
 func ToToDoResList(list []entity.ToDo) []ToDoRes {
 	res := make([]ToDoRes, 0, len(list))
 
 	for _, t := range list {
-		res = append(res, ToToDoRes(t))
+		res = append(res, *ToToDoRes(t))
 	}
 
 	return res

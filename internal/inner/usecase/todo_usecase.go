@@ -1,28 +1,32 @@
 package usecase
 
 import (
+	"fmt"
+
 	"app/internal/inner/dto"
 	"app/internal/inner/entity"
 	"app/internal/inner/ports"
-	"fmt"
 )
 
 type LayerUseCase struct {
-	Repo ports.Irepository[entity.ToDo]
+	TodoRepo ports.Irepository[entity.ToDo]
 }
 
 func InitLayer(repository ports.Irepository[entity.ToDo]) *LayerUseCase {
 	return &LayerUseCase{
-		Repo: repository,
+		TodoRepo: repository,
 	}
 }
 
 // ------------------------------------------------------------------
 
-func (it *LayerUseCase) SaveToDo(info dto.ToDoReq) (int64, error) {
-	todo := entity.NewToDo(info.Title, info.Content)
-	id, err := it.Repo.Save(*todo)
+func (it *LayerUseCase) SaveToDo(info *dto.ToDoReq) (int64, error) {
+	todo, err := entity.NewToDo(info.Title, info.Content)
+	if err != nil {
+		return 0, err
+	}
 
+	id, err := it.TodoRepo.Save(todo)
 	if err != nil {
 		return 0, err
 	}
@@ -30,30 +34,36 @@ func (it *LayerUseCase) SaveToDo(info dto.ToDoReq) (int64, error) {
 	return id, nil
 }
 
-func (it *LayerUseCase) GetToDo(id int64) (dto.ToDoRes, error) {
-	result, err := it.Repo.Get(id)
-	if err != nil {
-		return dto.ToDoRes{}, err
+func (it *LayerUseCase) GetToDo(id int64) (*dto.ToDoRes, error) {
+	if id <= 0 {
+		return nil, fmt.Errorf("id inválido")
 	}
 
-	return dto.ToToDoRes(result), err
+	result, err := it.TodoRepo.Get(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return dto.ToToDoRes(*result), err
 }
 
 func (it *LayerUseCase) GetToDoList() ([]dto.ToDoRes, error) {
-	result, err := it.Repo.GetList()
+	result, err := it.TodoRepo.GetList()
 	if err != nil {
 		return []dto.ToDoRes{}, err
 	}
 
-	return dto.ToToDoResList(result), nil
+	return dto.ToToDoResList(*result), nil
 }
 
 func (it *LayerUseCase) EditToDo(id int64, info dto.ToDoEditReq) error {
+	if id <= 0 {
+		return fmt.Errorf("id inválido")
+	}
 
-	todo, err := it.Repo.Get(id)
+	todo, err := it.TodoRepo.Get(id)
 	if err != nil {
 		return fmt.Errorf("não há elemento com tal id")
-
 	}
 
 	if info.Title != nil {
@@ -68,7 +78,7 @@ func (it *LayerUseCase) EditToDo(id int64, info dto.ToDoEditReq) error {
 		todo.Status = *info.Status
 	}
 
-	err = it.Repo.Edit(todo)
+	err = it.TodoRepo.Edit(todo)
 	if err != nil {
 		return err
 	}
@@ -77,7 +87,11 @@ func (it *LayerUseCase) EditToDo(id int64, info dto.ToDoEditReq) error {
 }
 
 func (it *LayerUseCase) DeleteToDo(id int64) error {
-	err := it.Repo.Delete(id)
+	if id <= 0 {
+		return fmt.Errorf("id inválido")
+	}
+
+	err := it.TodoRepo.Delete(id)
 	if err != nil {
 		return err
 	}

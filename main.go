@@ -1,17 +1,17 @@
 package main
 
 import (
-	"app/internal/outer/http/server"
-	"fmt"
+	"log"
 
 	"github.com/joho/godotenv"
+
+	"app/internal/outer/http/server"
 )
 
 func init() {
-	// Carregar as variáveis de ambiente
-	if err_load := godotenv.Load(); err_load != nil {
-		fmt.Println("Erro no godotenv.Load")
-		panic(err_load)
+	if err := godotenv.Load(); err != nil {
+		log.Println("[.env error]: ", err)
+		return
 	}
 }
 

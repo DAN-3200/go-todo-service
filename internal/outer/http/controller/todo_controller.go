@@ -31,7 +31,7 @@ func (it *LayerController) SaveToDo(ctx *gin.Context) {
 		return
 	}
 
-	id, err := it.UseCase.SaveToDo(*request)
+	id, err := it.UseCase.SaveToDo(request)
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return
