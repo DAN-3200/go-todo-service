@@ -32,13 +32,13 @@ func RunServer() {
 		log.Println("[error ao conectar com o banco de dados]:", err)
 		return
 	}
-	
+
 	repo, err := repository.InitLayer(conn)
 	if err != nil {
 		log.Println("[error ao inicializar repositório]:", err)
 		return
 	}
-	
+
 	err = repo.CreateTable()
 	if err != nil {
 		log.Println("[error ao criar tabela]:", err)
@@ -49,7 +49,19 @@ func RunServer() {
 	controller := controller.InitLayer(useCase)
 
 	Routers(server, controller)
-	
+
+	server.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"postgres": conn.Ping() == nil,
+		})
+	})
+
+	server.GET("/ready", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "ready",
+		})
+	})
+
 	err = server.Run(":8080")
 	if err != nil {
 		log.Println("[error ao iniciar servidor]:", err)

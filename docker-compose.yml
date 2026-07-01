@@ -10,6 +10,8 @@ services:
       - todo_net
     depends_on:
       - database
+    expose:
+      - 8080
 
   database:
     image: postgres:latest
