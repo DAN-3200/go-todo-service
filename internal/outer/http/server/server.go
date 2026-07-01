@@ -2,6 +2,7 @@ package server
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -50,19 +51,32 @@ func RunServer() {
 
 	Routers(server, controller)
 
-	server.GET("/health", func(c *gin.Context) {
+	server.GET("/readiness", func(c *gin.Context) {
+		if conn.Ping() != nil {
+			c.JSON(503, gin.H{
+				"postgres": false,
+			})
+			return
+		}
+
 		c.JSON(200, gin.H{
-			"postgres": conn.Ping() == nil,
+			"status":   "ready",
+			"postgres": true,
 		})
 	})
 
-	server.GET("/ready", func(c *gin.Context) {
+	server.GET("/healthz", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"status": "ready",
+			"status": "healthy",
 		})
 	})
 
-	err = server.Run(":8080")
+	port := os.Getenv("API_PORT")
+	if port == "" {
+		port = "8200"
+	}
+
+	err = server.Run(":" + port)
 	if err != nil {
 		log.Println("[error ao iniciar servidor]:", err)
 		return
